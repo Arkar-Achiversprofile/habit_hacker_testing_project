@@ -71,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final _speechToText = SpeechToText();
   bool _speechEnabled = false;
   bool _isListening = false;
-  var _lastWords = '';
+  var _fullText = '';
 
   final TextEditingController _pauseForController =
       TextEditingController(text: '5');
@@ -103,6 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   /// Each time to start a speech recognition session
   void _startListening() async {
+    _isListening = true;
     final pauseFor = int.tryParse(_pauseForController.text);
     final listenFor = int.tryParse(_listenForController.text);
     final options = SpeechListenOptions(
@@ -119,9 +120,6 @@ class _MyHomePageState extends State<MyHomePage> {
         localeId: _currentLocaleId,
         onSoundLevelChange: soundLevelListener,
         listenOptions: options);
-    setState(() {
-      _isListening = true;
-    });
   }
 
   /// Manually stop the active speech recognition session
@@ -130,21 +128,17 @@ class _MyHomePageState extends State<MyHomePage> {
   /// listen method.
   void _stopListening() async {
     await _speechToText.stop();
-    setState(() {
-      _isListening = false;
-      // _lastWords = _lastWords;
-    });
+    _isListening = false;
   }
 
   /// This is the callback that the SpeechToText plugin calls when
   /// the platform returns recognized words.
   void _onSpeechResult(SpeechRecognitionResult result) {
-    // if (_lastWords == '') {
-    // var voiceToText = result.recognizedWords;
-    // }
-    _speechTextcontroller.text = result.recognizedWords;
     setState(() {
-      _lastWords = result.recognizedWords;
+      if (result.finalResult) {
+        _fullText += ('${result.recognizedWords} ');
+        _speechTextcontroller.text = _fullText;
+      }
     });
     // _stopListening();
     _startListening();
@@ -166,6 +160,15 @@ class _MyHomePageState extends State<MyHomePage> {
     NotificationService.scheduleNotification(
         "Android Notification", "Hello testing hello", selectedTime);
   }
+
+  // String recognizedWordsToShow(lastWords) {
+  //   var displayWords = _words;
+  //   displayWords = displayWords + lastWords;
+  //   setState(() {
+  //     _words = displayWords;
+  //   });
+  //   return displayWords;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Column(
                 children: [
                   TextField(
-                  controller: _speechTextcontroller,
+                    controller: _speechTextcontroller,
                     decoration: const InputDecoration(
                       border: const OutlineInputBorder(),
                       hintText: 'Enter a search term',
@@ -225,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         : 'Speech not available',
                   ),
                   CustomText(
-                    text: _lastWords,
+                    text: _fullText,
                     fontSize: 20,
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
