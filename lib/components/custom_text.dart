@@ -11,7 +11,7 @@ class CustomText extends StatelessWidget {
   const CustomText({
     super.key,
     required this.text,
-    this.fontSize = 16.0,
+    this.fontSize = 20,
     this.color = Colors.black,
     this.fontWeight = FontWeight.normal,
     this.textAlign = TextAlign.left,

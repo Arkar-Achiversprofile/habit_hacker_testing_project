@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:habit_hacker_testing_project/components/custom_text.dart';
 import 'package:habit_hacker_testing_project/notifications/notification_service.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -72,6 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _speechEnabled = false;
   bool _isListening = false;
   var _fullText = '';
+  Timer? _timer;
 
   final TextEditingController _pauseForController =
       TextEditingController(text: '5');
@@ -84,6 +87,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String speechText = '';
   final TextEditingController _speechTextcontroller = TextEditingController();
+
+  int selectedDay = 0;
+  int selectedHour = 0;
+  int selectedMinute = 0;
+  int selectedSecond = 0;
+
+  final List<int> days = List.generate(31, (index) => index);
+  final List<int> hours = List.generate(24, (index) => index);
+  final List<int> minutes = List.generate(60, (index) => index);
+  final List<int> seconds = List.generate(60, (index) => index);
 
   @override
   void initState() {
@@ -103,7 +116,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   /// Each time to start a speech recognition session
   void _startListening() async {
-    _isListening = true;
+    setState(() {
+      _isListening = true;
+    });
     final pauseFor = int.tryParse(_pauseForController.text);
     final listenFor = int.tryParse(_listenForController.text);
     final options = SpeechListenOptions(
@@ -128,7 +143,9 @@ class _MyHomePageState extends State<MyHomePage> {
   /// listen method.
   void _stopListening() async {
     await _speechToText.stop();
-    _isListening = false;
+    setState(() {
+      _isListening = false;
+    });
   }
 
   /// This is the callback that the SpeechToText plugin calls when
@@ -153,12 +170,40 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _showDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text(
+                'Please select the duration as you want to get notification. Notification will be send to you every duration time you set.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   Future<void> requestExactAlarmPermission() async {
-    DateTime selectedTime =
-        DateTime.now().add(const Duration(seconds: 10)); // For testing purposes
-    // NotificationService().scheduleDailyNotification(selectedTime);
-    NotificationService.scheduleNotification(
-        "Android Notification", "Hello testing hello", selectedTime);
+    // DateTime selectedTime = DateTime.now().add(const Duration(seconds: 10));
+    Duration duration = Duration(
+        days: selectedDay,
+        hours: selectedHour,
+        minutes: selectedMinute,
+        seconds: selectedSecond);
+    _timer?.cancel();
+    _timer = Timer.periodic(duration, (Timer timer) {
+      NotificationService.showNotification(
+          "Show Notification", "This is show notification!");
+      // NotificationService.scheduleNotification(
+      //   "Android Notification", "Hello testing hello", selectedTime);
+    });
   }
 
   // String recognizedWordsToShow(lastWords) {
@@ -174,83 +219,209 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Speech Demo'),
+        title: const Text('Habit Hacker'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                NotificationService.showNotification(
-                    "Show Notification", "This is show notification!");
-              },
-              child: const Text('Show Notification'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DropdownButton<int>(
+                  value: selectedDay,
+                  items: days.map((int day) {
+                    return DropdownMenuItem<int>(
+                      value: day,
+                      child: CustomText(
+                        text: '$day Day${day > 1 ? 's' : ''}',
+                        fontWeight: FontWeight.bold,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (int? newValue) {
+                    setState(() {
+                      selectedDay = newValue!;
+                    });
+                  },
+                  hint: const Text('Select Day'),
+                ),
+                const SizedBox(width: 15),
+                DropdownButton<int>(
+                  value: selectedHour,
+                  items: hours.map((int hour) {
+                    return DropdownMenuItem<int>(
+                      value: hour,
+                      child: CustomText(
+                        text: '$hour Hour${hour > 1 ? 's' : ''}',
+                        fontWeight: FontWeight.bold,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (int? newValue) {
+                    setState(() {
+                      selectedHour = newValue!;
+                    });
+                  },
+                  hint: const Text('Select Hour'),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                requestExactAlarmPermission();
-              },
-              child: const Text('Schedule Notification'),
+            const SizedBox(height: 15),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DropdownButton<int>(
+                  value: selectedMinute,
+                  items: minutes.map((int minute) {
+                    return DropdownMenuItem<int>(
+                      value: minute,
+                      child: CustomText(
+                        text: '$minute Minute${minute > 1 ? 's' : ''}',
+                        fontWeight: FontWeight.bold,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (int? newValue) {
+                    setState(() {
+                      selectedMinute = newValue!;
+                    });
+                  },
+                  hint: const Text('Select Minute'),
+                ),
+                const SizedBox(width: 15),
+                DropdownButton<int>(
+                  value: selectedSecond,
+                  items: seconds.map((int second) {
+                    return DropdownMenuItem<int>(
+                      value: second,
+                      child: CustomText(
+                        text: '$second Second${second > 1 ? 's' : ''}',
+                        fontWeight: FontWeight.bold,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (int? newValue) {
+                    setState(() {
+                      selectedSecond = newValue!;
+                    });
+                  },
+                  hint: const Text('Select Second'),
+                ),
+              ],
             ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    if (selectedDay == 0 &&
+                        selectedHour == 0 &&
+                        selectedMinute == 0 &&
+                        selectedSecond == 0) {
+                      _showDialog(context);
+                    } else {
+                      requestExactAlarmPermission();
+                    }
+                  },
+                  child: const CustomText(
+                    text: 'Show Notification',
+                    color: Colors.deepPurple,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    _timer?.cancel();
+                    _timer = null;
+                  },
+                  child: const CustomText(
+                    text: 'Cancel Schedule',
+                    color: Colors.deepPurple,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
             Container(
-              padding: const EdgeInsets.all(16),
-              child: const Text(
-                'Recognized words:',
-                style: TextStyle(fontSize: 20.0),
+              // padding: const EdgeInsets.all(16),
+              child: const CustomText(
+                text: 'Recognized words:',
+                fontSize: 25,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                textAlign: TextAlign.center,
               ),
             ),
+            const SizedBox(height: 15),
             Expanded(
                 child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 15),
               child: SingleChildScrollView(
                   child: Column(
                 children: [
+                  CustomText(
+                    // If listening is active show the recognized words
+                    // _speechToText.isListening
+                    text: _speechEnabled
+                        ? _isListening
+                            ? 'Microphone is listening'
+                            : 'Tap the microphone to start listening...'
+                        : 'Speech not available',
+                    fontSize: 20,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _speechTextcontroller,
+                    minLines: 5,
+                    maxLines: 10,
                     decoration: const InputDecoration(
                       border: const OutlineInputBorder(),
-                      hintText: 'Enter a search term',
                     ),
+                    style:
+                        GoogleFonts.caveat(color: Colors.black, fontSize: 18),
                     onChanged: (text) => {
                       setState(() {
                         speechText = text;
                       })
                     },
                   ),
-                  Text(
-                    // If listening is active show the recognized words
-                    // _speechToText.isListening
-                    _speechEnabled
-                        ? _isListening
-                            ? 'Microphone is listening'
-                            : 'Tap the microphone to start listening...'
-                        : 'Speech not available',
-                  ),
-                  CustomText(
-                    text: _fullText,
-                    fontSize: 20,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    textAlign: TextAlign.center,
-                  ),
+                  // CustomText(
+                  //   text: _fullText,
+                  //   fontSize: 20,
+                  //   color: Colors.black,
+                  //   fontWeight: FontWeight.bold,
+                  //   textAlign: TextAlign.center,
+                  // ),
                 ],
               )),
             )),
           ],
         ),
       ),
-      floatingActionButton: GestureDetector(
-        onLongPress: _startListening,
-        onLongPressUp: _stopListening,
-        child: FloatingActionButton(
-          onPressed: null,
-          // If not yet listening for speech start, otherwise stop
-          // _isListening ? _stopListening : _startListening,
-          // tooltip: 'Listen',
-          child: Icon(_isListening ? Icons.mic : Icons.mic_off),
-        ),
+      floatingActionButton:
+          //  GestureDetector(
+          //   onLongPress: _startListening,
+          //   onLongPressUp: _stopListening,
+          //   child:
+          FloatingActionButton(
+        onPressed:
+            // If not yet listening for speech start, otherwise stop
+            _isListening ? _stopListening : _startListening,
+        // tooltip: 'Listen',
+        child: Icon(_isListening ? Icons.mic : Icons.mic_off),
       ),
+      // ),
     );
   }
 }

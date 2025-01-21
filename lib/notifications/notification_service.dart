@@ -91,7 +91,7 @@ class NotificationService {
             importance: Importance.max, priority: Priority.high),
         iOS: DarwinNotificationDetails());
     await _notificationsPlugin.show(
-        0, 'plain title', 'plain body', platformChannelSpecifics);
+        0, title, body, platformChannelSpecifics);
   }
 
   static Future<void> scheduleNotification(
