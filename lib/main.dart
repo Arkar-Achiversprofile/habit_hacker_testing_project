@@ -1,19 +1,19 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:habit_hacker_testing_project/components/custom_text.dart';
+import 'package:habit_hacker_testing_project/controller/open_database.dart';
+import 'package:habit_hacker_testing_project/discovery_page.dart';
 import 'package:habit_hacker_testing_project/notifications/notification_service.dart';
-import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await OpenDatabase.instance.database;
   await NotificationService.init();
   tz.initializeTimeZones();
   runApp(const MyApp());
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Habit Hacker',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -46,7 +46,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // home: const MyHomePage(title: 'Habit Hacker'),
+      home: const DiscoveryPage(),
     );
   }
 }
@@ -206,13 +207,32 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // String recognizedWordsToShow(lastWords) {
-  //   var displayWords = _words;
-  //   displayWords = displayWords + lastWords;
-  //   setState(() {
-  //     _words = displayWords;
-  //   });
-  //   return displayWords;
+  // void onClickStudentInsert() async {
+  //   List<Student> student = [
+  //     const Student(studentName: "Aerie", studentAge: 24, classRoomID: 3),
+  //     const Student(studentName: "Angela", studentAge: 25, classRoomID: 1),
+  //     const Student(studentName: "John", studentAge: 26, classRoomID: 1),
+  //     const Student(studentName: "David", studentAge: 24, classRoomID: 2),
+  //     const Student(studentName: "Lily", studentAge: 23, classRoomID: 3),
+  //   ];
+  //   await StudentController.studentInsert(student);
+  // }
+
+  // void onClickStudentRetrieve() async {
+  //   print(await StudentController.studentDataByClassRoomId());
+  // }
+
+  // void onClickClassRoomInsert() async {
+  //   List<ClassRoom> classRooms = [
+  //     const ClassRoom(classRoomName: "Javascript"),
+  //     const ClassRoom(classRoomName: "Python"),
+  //     const ClassRoom(classRoomName: "C#")
+  //   ];
+  //   await ClassRoomController.classRoomInsert(classRooms);
+  // }
+
+  // void onClickClassRoomRetrieve() async {
+  //   print(await ClassRoomController.classRoomRetrieveAll());
   // }
 
   @override
@@ -315,8 +335,8 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Column(
+              // mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
                   onPressed: () {
@@ -406,6 +426,46 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               )),
             )),
+            // Row(
+            //   children: [
+            //     ElevatedButton(
+            //       onPressed: onClickStudentInsert,
+            //       child: const CustomText(
+            //         text: 'Create Student',
+            //         color: Colors.blue,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //     ElevatedButton(
+            //       onPressed: onClickStudentRetrieve,
+            //       child: const CustomText(
+            //         text: 'Retrieve Student',
+            //         color: Colors.green,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     )
+            //   ],
+            // ),
+            // Row(
+            //   children: [
+            //     ElevatedButton(
+            //       onPressed: onClickClassRoomInsert,
+            //       child: const CustomText(
+            //         text: 'Create Class',
+            //         color: Colors.blue,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //     ElevatedButton(
+            //       onPressed: onClickClassRoomRetrieve,
+            //       child: const CustomText(
+            //         text: 'Retrieve Class',
+            //         color: Colors.green,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     )
+            //   ],
+            // )
           ],
         ),
       ),
